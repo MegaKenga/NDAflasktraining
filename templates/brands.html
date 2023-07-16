@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
- 
+
 {% block content %}
 {{ super() }}
 <div class="box">
 
 {% for brand in brands %}
-	<div class="selection"><a href='{{brand.url}}'>{{ brand.name }}</div>
+	<div class="selection"><a href='{{brand.url}}'>{{ brand.name }}</a></div>
 	{% endfor %}
 </div>
 

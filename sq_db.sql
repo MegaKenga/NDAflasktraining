@@ -56,7 +56,7 @@ url text NOT NULL
 -- ('MERIL', '/meril')
 
 
-INSERT INTO business_units (name, url) VALUES
-('АНЕСТЕЗИОЛОГИЯ И РЕАНИМАЦИЯ', '/icu'),
-('ХИРУРГИЯ', '/surgery'),
-('КАРДИОЛОГИЯ И РЕНТГЕНХИРУРГИЯ', '/cardiovascular')
+-- INSERT INTO business_units (name, url) VALUES
+-- ('АНЕСТЕЗИОЛОГИЯ И РЕАНИМАЦИЯ', '/icu'),
+-- ('ХИРУРГИЯ', '/surgery'),
+-- ('КАРДИОЛОГИЯ И РЕНТГЕНХИРУРГИЯ', '/cardiovascular')
