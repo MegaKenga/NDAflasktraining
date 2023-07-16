@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+ 
+{% block content %}
+{{ super() }}
+<div><a href='/add_news'>Добавить новость</a></div>
+<h2>Новости</h2>
+{% for new in news %}
+<div><a href="{{ url_for('showNews', id_news=new.id) }}">{{new.title}}</a></div>
+{% endfor %}
+{% endblock %}

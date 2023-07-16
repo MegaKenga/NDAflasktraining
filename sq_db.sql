@@ -1,0 +1,26 @@
+CREATE TABLE IF NOT EXISTS news (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+title text NOT NULL,
+text text NOT NULL,
+time integer NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS users (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+name text NOT NULL,
+email text NOT NULL,
+psw text NOT NULL,
+time integer NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS brands (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+name text NOT NULL,
+url text NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS business_units (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+name text NOT NULL,
+url text NOT NULL
+);

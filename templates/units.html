@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+ 
+{% block content %}
+{{ super() }}
+{% for unit in units %}
+		<div>
+	    <a href='{{unit.url}}'> {{ unit.name }} </a>
+        </div>
+	{% endfor %}
+
+{% endblock %}
