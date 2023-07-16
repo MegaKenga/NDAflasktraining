@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from flask import Flask
+from flask import Flask, g
 
 DATABASE = 'tmp/flsite.db'
 DEBUG = True
@@ -24,3 +24,9 @@ def create_db():
         db.cursor().executescript(f.read())
     db.commit()
     db.close()
+
+
+def get_db(): #создание соединения, если оно еще не установлено
+    if not hasattr(g, 'link_db'):
+        g.link_db = connect_db()
+    return g.link_db
