@@ -53,7 +53,7 @@ class FDataBase():
 
     def get_news(self, id_news):
         try:
-            self.__cur.execute(f'SELECT title, text FROM news WHERE id = {id_news} LIMIT 1')
+            self.__cur.execute(f"SELECT title, text FROM news WHERE id = '{id_news}' LIMIT 1")
             result = self.__cur.fetchone()
             if result:
                 return result
@@ -86,3 +86,35 @@ class FDataBase():
             print('Ошибка добавления в базу данных' + str(err))
             return False
         return True
+
+    def get_user(self, user_id):
+        try:
+            self.__cur.execute(f"SELECT * FROM users WHERE id = '{user_id}' LIMIT 1")
+            result = self.__cur.fetchone()
+            if not result:
+                print('Пользователь не найден')
+                return False
+            else:
+                return result
+
+        except sqlite3.Error as err:
+            print('Ошибка получения данных пользователя' + str(err))
+
+        return False
+
+    def get_user_by_email(self, email):
+        try:
+            self.__cur.execute(f"SELECT * FROM users WHERE email = '{email}' LIMIT 1")
+            result = self.__cur.fetchone()
+            if not result:
+                print('Пользователь не найден')
+                return False
+            else:
+                return result
+
+        except sqlite3.Error as err:
+            print('Ошибка получения данных пользователя' + str(err))
+
+        return False
+
+
