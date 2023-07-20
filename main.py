@@ -1,18 +1,47 @@
-from flask import Flask, render_template, url_for, request, flash, session, redirect, abort, g
-from flsite import get_db
+from flask import Flask, render_template, url_for, request, flash, redirect, abort, g
 from FDataBase import FDataBase
 from UserLogin import UserLogin
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+import sqlite3
+import os
+
+DATABASE = 'tmp/flsite.db'
+DEBUG = True
+SECRET_KEY = 'sdfg54sd56fg4sdf2g1sd65gf46sd4g56sdfg'
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'asd5fg4s65dfg456g1vg2ads1v56ds45646'
 app.config.from_object(__name__)
+app.config.update(dict(DATABASE=os.path.join(app.root_path, 'flsite.db')))
+
 login_manager = LoginManager(app)
+login_manager.login_view = 'authorisation_page'
+login_manager.login_message = "Авторизуйтесь для доступа к закрытым страницам"
+login_manager.login_message_category = "success"
+
+
+def connect_db():
+    conn = sqlite3.connect(app.config['DATABASE'])
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def create_db():
+    db = connect_db()
+    with app.open_resource('sq_db.sql', mode='r') as f:
+        db.cursor().executescript(f.read())
+    db.commit()
+    db.close()
+
+
+def get_db():
+    # создание соединения, если оно еще не установлено
+    if not hasattr(g, 'link_db'):
+        g.link_db = connect_db()
+    return g.link_db
+
 
 dbase = None
-
-
 @app.before_request
 def before_request():
     """Установление соединения с БД перед выполнением запроса"""
@@ -22,7 +51,8 @@ def before_request():
 
 
 @app.teardown_appcontext
-def close_db(error): #Закрываем соединение, если оно было установлено
+def close_db(error):
+    # Закрываем соединение, если оно было установлено
     if hasattr(g, 'link_db'):
         g.link_db.close()
 
@@ -44,16 +74,6 @@ def secret_page():
     return render_template('secret.html', title='Ну очень секретная страница')
 
 
-# @app.route('/authorisation', methods=['POST', 'GET'])
-# def authorisation_page():
-    # if 'userLogged' in session:
-    #     return redirect(url_for('profile', username=session['userLogged']))
-    # elif request.method == 'POST' and request.form['username'] == 'teamNDA' and request.form['psw'] == 'NDA7140614':
-    #     session['userLogged'] = request.form['username']
-    #     return redirect(url_for('profile', username=session['userLogged']))
-    # return render_template('authorisation.html', title='Авторизация')
-
-
 @app.route('/registration', methods=['POST', 'GET'])
 def registration_page():
     if request.method == 'POST':
@@ -72,34 +92,36 @@ def registration_page():
     return render_template('registration.html', title='Регистрация')
 
 
+@app.route('/profile')
+@login_required
+def profile_page():
+    return f"""<p><a href="{url_for('logout')}">Выйти из профиля</a>
+                    <p>user info: {current_user.get_id()}"""
+
+
 @app.route('/authorisation', methods=['POST', 'GET'])
 def authorisation_page():
+    if current_user.is_authenticated:
+        return redirect(url_for('profile_page'))
     if request.method == 'POST':
         user = dbase.get_user_by_email(request.form['email'])
         if user and check_password_hash(user['psw'], request.form['psw']):
             user_auth = UserLogin().create_user(user)
-            login_user(user_auth)
-            flash('Авторизация прошла успешно', 'success')
-            return redirect(url_for('profile'))
+            rm = True if request.form.get('rememberme') else False
+            login_user(user_auth, remember=rm)
+            return redirect(request.args.get('next') or url_for('profile_page'))
         else:
             flash('Неправильно указано имя или пароль', 'error')
 
     return render_template('authorisation.html', title='Авторизация')
 
 
-app.route('/logout')
+@app.route('/logout')
 @login_required
 def logout():
     logout_user()
     flash('Вы вышли из аккаунта', 'success')
     return redirect(url_for('authorisation_page'))
-
-
-app.route('/profile')
-@login_required
-def profile():
-    return f"""<p><a href="{url_for ('logout')}">Выйти из профиля</a>
-    <p>user info: {current_user.get_id()}"""
 
 
 @app.route('/news')
@@ -131,16 +153,10 @@ def contacts_page():
     return render_template('contacts.html', title='Связаться с нами')
 
 
-@app.route('/profile/<username>')
-def profile(username):
-    if 'userLogged' not in session or session['userLogged'] != username:
-        abort(401)
-    return f'Пользователь {username}'
-
-
 @app.errorhandler(404)
 def page_not_found(error):
-    return render_template('page404.html', title='Страница не найдена'), 404 #для отображения ошибки в серверной части
+    return render_template('page404.html', title='Страница не найдена'), 404
+    # для отображения ошибки в серверной части
 
 
 @app.route('/brands')
@@ -151,6 +167,8 @@ def brands_page():
 @app.route('/units')
 def units_page():
     return render_template('units.html', units=dbase.get_business_units(), title='Каталог по направлениям')
+
+
 @app.route('/brands/<medicalbrand>')
 def brand(medicalbrand):
-    return render_template(f'{medicalbrand}.html', medicalbrand=brand, title ='{{brand}}')
+    return render_template(f'{medicalbrand}.html', medicalbrand=brand, title={{brand}})

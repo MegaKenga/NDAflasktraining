@@ -89,7 +89,7 @@ class FDataBase():
 
     def get_user(self, user_id):
         try:
-            self.__cur.execute(f"SELECT * FROM users WHERE id = '{user_id}' LIMIT 1")
+            self.__cur.execute(f"SELECT * FROM users WHERE id = {user_id} LIMIT 1")
             result = self.__cur.fetchone()
             if not result:
                 print('Пользователь не найден')
