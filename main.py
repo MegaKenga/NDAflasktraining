@@ -1,8 +1,9 @@
-from flask import Flask, render_template, url_for, request, flash, redirect, abort, g
+from flask import Flask, render_template, url_for, request, flash, redirect, abort, g, make_response
 from FDataBase import FDataBase
 from UserLogin import UserLogin
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from forms import LoginForm
 import sqlite3
 import os
 
@@ -65,7 +66,7 @@ def load_user(user_id):
 
 @app.route('/')
 def main_page():
-    return render_template('index.html', title='НДА Деловая медицинская компания')
+    return render_template('index.html', brands=dbase.get_brands(), units=dbase.get_business_units(), title='НДА Деловая медицинская компания')
 
 
 @app.route('/secret')
@@ -95,26 +96,56 @@ def registration_page():
 @app.route('/profile')
 @login_required
 def profile_page():
-    return f"""<p><a href="{url_for('logout')}">Выйти из профиля</a>
-                    <p>user info: {current_user.get_id()}"""
+    return render_template('profile.html', title='Профиль')
 
+
+@app.route('/userava')
+@login_required
+def userava():
+    img = current_user.getAvatar(app)
+    if not img:
+        return ""
+
+    h = make_response(img)
+    h.headers['Content-Type'] = 'image/png'
+    return h
+
+
+@app.route('/upload', methods=["POST", "GET"])
+@login_required
+def upload():
+    if request.method == 'POST':
+        file = request.files['file']
+        if file and current_user.verifyExt(file.filename):
+            try:
+                img = file.read()
+                res = dbase.updateUserAvatar(img, current_user.get_id())
+                if not res:
+                    flash("Ошибка обновления аватара", "error")
+                    return redirect(url_for('profile'))
+                flash("Аватар обновлен", "success")
+            except FileNotFoundError as e:
+                flash("Ошибка чтения файла", "error")
+        else:
+            flash("Ошибка обновления аватара", "error")
+
+    return redirect(url_for('profile_page'))
 
 @app.route('/authorisation', methods=['POST', 'GET'])
 def authorisation_page():
     if current_user.is_authenticated:
         return redirect(url_for('profile_page'))
-    if request.method == 'POST':
-        user = dbase.get_user_by_email(request.form['email'])
-        if user and check_password_hash(user['psw'], request.form['psw']):
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = dbase.get_user_by_email(form.email.data)
+        if user and check_password_hash(user['psw'], form.psw.data):
             user_auth = UserLogin().create_user(user)
-            rm = True if request.form.get('rememberme') else False
+            rm = form.remember.data
             login_user(user_auth, remember=rm)
             return redirect(request.args.get('next') or url_for('profile_page'))
         else:
             flash('Неправильно указано имя или пароль', 'error')
-
-    return render_template('authorisation.html', title='Авторизация')
-
+    return render_template("authorisation.html", title="Авторизация", form=form)
 
 @app.route('/logout')
 @login_required
@@ -159,16 +190,15 @@ def page_not_found(error):
     # для отображения ошибки в серверной части
 
 
-@app.route('/brands')
-def brands_page():
-    return render_template('brands.html', brands=dbase.get_brands(), title='Каталог по производителям')
+@app.route('/<brand>')
+def brand_page(brand):
+    brand = dbase.get_single_brand(brand)
+    return render_template('brand_page.html', brand=brand, title=brand)
 
+@app.route('/brandimage')
+def brand_image(brand):
+    img = dbase.get_brand_image(brand)
+    h = make_response(img)
+    h.headers['Content-Type'] = 'image/png'
+    return h
 
-@app.route('/units')
-def units_page():
-    return render_template('units.html', units=dbase.get_business_units(), title='Каталог по направлениям')
-
-
-@app.route('/brands/<medicalbrand>')
-def brand(medicalbrand):
-    return render_template(f'{medicalbrand}.html', medicalbrand=brand, title={{brand}})

@@ -83,3 +83,85 @@ a.menu:hover {
     border: 1px solid #FF4343;
     background: #FF9C9C;
 }
+
+.back_fon {
+    box-sizing: content-box;
+    display: block;
+    float: none;
+    line-height: 24px;
+    position: static;
+    z-index: auto;
+    max-width: 100%;
+    height: auto;
+}
+
+.profile-ava {
+         width: 130px;
+         text-align: center;
+         overflow: hidden;
+         background: #eee;
+         padding: 10px;
+}
+
+.profile-ava img {max-width: 150px; height: auto;}
+
+.profile-load {
+         margin-top: 10px;
+         overflow: hidden;
+         max-width: 150px;
+}
+.profile-load input[type=submit], input[type=file] {
+         width: 100%;
+         font-size: 18px;
+}
+.profile-load p {
+         padding: 0;
+         margin: 5px 0 0 0;
+}
+
+.profile-panel {padding: 0 0 0 10px;}
+ul.profile-info {
+         list-style: none;
+         margin: 10px 0 0 0;
+         padding: 0;
+         color: #7E652F;
+}
+ul.profile-info li {margin-top: 10px;}
+
+.tabs {
+  width: 100%;
+  display: inline-block;
+}
+
+.tab-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.tab-item {
+  display: inline-block;
+  margin-right: 10px;
+  padding: 10px;
+  cursor: pointer;
+  background-color: #f1f1f1;
+  border-radius: 5px 5px 0 0;
+}
+
+.tab-item.active {
+  background-color: #fff;
+}
+
+.tab-content {
+  border: 1px solid #f1f1f1;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+}

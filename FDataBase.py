@@ -19,6 +19,29 @@ class FDataBase():
             print('Ошибка чтения из БД')
         return [] #Если произошла ошибка, то метод getBrands вернет пустой список
 
+    def get_single_brand(self, brand):
+        sql = f"""SELECT * FROM brands WHERE url = '/{brand}'"""
+        try:
+            self.__cur.execute(sql)
+            result = self.__cur.fetchone()
+            if result:
+                return result
+        except:
+            print('Ошибка чтения из БД')
+        return [] #Если произошла ошибка, то метод getBrands вернет пустой список
+
+    def get_brand_image(self, brand):
+        sql = f"""SELECT picture FROM brands WHERE url = '/{brand}'"""
+        try:
+            self.__cur.execute(sql)
+            result = self.__cur.fetchone()
+            if result:
+                return result
+        except:
+            print('Ошибка чтения из БД')
+        return [] #Если произошла ошибка, то метод getBrands вернет пустой список
+
+
     def get_business_units(self):
         sql = """SELECT * FROM business_units"""
         try:
@@ -80,7 +103,7 @@ class FDataBase():
                 return False
             else:
                 tm = math.floor(time.time())
-                self.__cur.execute("INSERT INTO users VALUES (NULL, ?, ?, ?, ?)", (username, email, hashed_psw, tm))
+                self.__cur.execute("INSERT INTO users VALUES (NULL, ?, ?, ?, NULL, ?)", (username, email, hashed_psw, tm))
                 self.__db.commit()
         except sqlite3.Error as err:
             print('Ошибка добавления в базу данных' + str(err))
@@ -117,4 +140,15 @@ class FDataBase():
 
         return False
 
+    def updateUserAvatar(self, avatar, user_id):
+        if not avatar:
+            return False
 
+        try:
+            binary = sqlite3.Binary(avatar)
+            self.__cur.execute(f"UPDATE users SET avatar = ? WHERE id = ?", (binary, user_id))
+            self.__db.commit()
+        except sqlite3.Error as e:
+            print("Ошибка обновления аватара в БД: " + str(e))
+            return False
+        return True
