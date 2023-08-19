@@ -5,11 +5,23 @@
 {% for cat, msg in get_flashed_messages(True) %}
 <div class='flash {{cat}}'>{{msg}}</div>
 {% endfor %}
-<form action='/registration' method='post'>
-<p><label>Имя</label> <input type='text' name='username' value='' required></p>
-<p><label>Email</label> <input type='text' name='email' value='' required></p>
-<p><label>Пароль</label> <input type='password' name='psw' value='' required></p>
-<p><label>Повтор пароля</label> <input type='password' name='psw_repeat' value='' required></p>
-<p><input type='submit' value='Зарегистрироваться'></p>
+<form action="{{ url_for('registration_page') }}" method="post" class="form-contact">
+{{ form.hidden_tag() }}
+
+{% for field in form if field.name not in ['csrf_token', 'submit'] -%}
+         {{ field.label() }}
+         {% if field.errors %}
+                   {{ field(class="invalid") }}
+         <span class="invalid-feedback">
+                   {% for e in field.errors %}
+                   {{ e }}
+                   {% endfor %}
+         </span>
+         {% else %}
+                   {{ field() }}
+         {% endif %}
+{% endfor %}
+
+{{ form.submit() }}
 </form>
 {% endblock %}

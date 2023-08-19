@@ -152,3 +152,14 @@ class FDataBase():
             print("Ошибка обновления аватара в БД: " + str(e))
             return False
         return True
+
+    def getBrands(self, alias):
+        try:
+            self.__cur.execute(f"SELECT name, url FROM brands WHERE url LIKE '{alias}' LIMIT 1")
+            res = self.__cur.fetchone()
+            if res:
+                return res
+        except sqlite3.Error as e:
+            print("Ошибка получения статьи из БД " + str(e))
+
+        return (False, False)

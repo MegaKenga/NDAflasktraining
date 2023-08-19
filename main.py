@@ -3,7 +3,8 @@ from FDataBase import FDataBase
 from UserLogin import UserLogin
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from forms import LoginForm
+from forms import LoginForm, RegisterForm
+from admin.admin import admin
 import sqlite3
 import os
 
@@ -14,6 +15,8 @@ SECRET_KEY = 'sdfg54sd56fg4sdf2g1sd65gf46sd4g56sdfg'
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config.update(dict(DATABASE=os.path.join(app.root_path, 'flsite.db')))
+
+app.register_blueprint(admin, url_prefix='/admin')
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'authorisation_page'
@@ -77,20 +80,17 @@ def secret_page():
 
 @app.route('/registration', methods=['POST', 'GET'])
 def registration_page():
-    if request.method == 'POST':
-        if len(request.form['username']) > 4 and len(request.form['email']) > 4 and len(request.form['psw']) > 4 \
-                and request.form['psw'] == request.form['psw_repeat']:
-            hashed = generate_password_hash(request.form['psw'])
-            result = dbase.add_user(request.form['username'], request.form['email'], hashed)
-            if result:
-                flash('Регистрация прошла успешно', 'success')
-                return redirect(url_for('authorisation_page'))
-            else:
-                flash('Ошибка добавления в базу данных', 'error')
+    form = RegisterForm()
+    if form.validate_on_submit():
+        hash = generate_password_hash(request.form['psw'])
+        res = dbase.addUser(form.name.data, form.email.data, hash)
+        if res:
+            flash("Вы успешно зарегистрированы", "success")
+            return redirect(url_for('login'))
         else:
-            flash('Неверно заполнены поля', 'error')
+            flash("Ошибка при добавлении в БД", "error")
 
-    return render_template('registration.html', title='Регистрация')
+    return render_template('registration.html', title='Регистрация', form=form)
 
 
 @app.route('/profile')
@@ -202,3 +202,10 @@ def brand_image(brand):
     h.headers['Content-Type'] = 'image/png'
     return h
 
+
+@app.route("/brands/<alias>")
+@login_required
+def showBrands(alias):
+    name, url = dbase.getPost(alias)
+    if not name:
+        abort(404)
